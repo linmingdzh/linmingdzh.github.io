@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Segmentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin: 20px;
+        }
+        .text-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .text-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 5px;
+            width: 200px;
+            height: 100px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+        .text-box[contenteditable="true"] {
+            outline: 2px dashed #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Segmentation</h1>
+        <form id="upload-form">
+            <label for="file-input">Upload a text file:</label>
+            <input type="file" id="file-input" accept=".txt">
+        </form>
+        <button id="save-button" style="display:none;">Save Changes</button>
+        <a id="download-link" style="display:none;">Download Text</a>
+        <div id="text-output" class="text-container"></div>
+    </div>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const paragraphs = text.split(/\n\s*\n\s*\n+/);
+                    const outputContainer = document.getElementById('text-output');
+                    outputContainer.innerHTML = ''; // Clear previous content
+                    paragraphs.forEach(paragraph => {
+                        const textBox = document.createElement('div');
+                        textBox.className = 'text-box';
+                        textBox.contentEditable = true;
+                        textBox.textContent = paragraph.trim();
+                        outputContainer.appendChild(textBox);
+                    });
+                    document.getElementById('save-button').style.display = 'block';
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        document.getElementById('save-button').addEventListener('click', function() {
+            const textBoxes = document.querySelectorAll('.text-box');
+            let newText = '';
+            textBoxes.forEach((box, index) => {
+                newText += box.textContent.trim();
+                if (index < textBoxes.length - 1) {
+                    newText += '\n\n\n'; // Add the delimiter back
+                }
+            });
+
+            const blob = new Blob([newText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const downloadLink = document.getElementById('download-link');
+            downloadLink.href = url;
+            downloadLink.download = 'modified_text.txt';
+            downloadLink.textContent = 'Download Modified Text';
+            downloadLink.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
